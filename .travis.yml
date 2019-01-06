@@ -1,0 +1,21 @@
+language: java
+jdk:
+- oraclejdk8
+
+cache:
+  directories:
+  - $HOME/.m2
+
+script:
+- mvn package -B
+
+deploy:
+  provider: script
+  script: mvn deploy -s settings.xml -DskipTests -DBintrayKey=$BintrayKey -B
+  on:
+    branch: master
+    tags: true
+
+notifications:
+  email:
+  - aibar.nurlanov@gmail.com
