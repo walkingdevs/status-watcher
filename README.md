@@ -34,4 +34,4 @@ Chat ID is: -1234456789 (with minus, it's important)
                -e "token"="token" \
                -e "username"="username" \
                -e "chatId"="chatId" \
-               walkingdevs:status-watcher 
+               walkingdevs/status-watcher 

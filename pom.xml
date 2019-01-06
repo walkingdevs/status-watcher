@@ -9,7 +9,7 @@
    </parent>
 
    <artifactId>status-watcher</artifactId>
-   <version>0.1</version>
+   <version>0.2</version>
 
    <dependencies>
       <dependency>
@@ -31,6 +31,14 @@
 
    <build>
       <sourceDirectory>src</sourceDirectory>
+      <plugins>
+         <plugin>
+            <artifactId>maven-shade-plugin</artifactId>
+            <configuration>
+               <shadedArtifactAttached>true</shadedArtifactAttached>
+            </configuration>
+         </plugin>
+      </plugins>
    </build>
 
    <repositories>
