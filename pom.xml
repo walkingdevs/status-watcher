@@ -9,7 +9,7 @@
    </parent>
 
    <artifactId>status-watcher</artifactId>
-   <version>0.2</version>
+   <version>0.3</version>
 
    <dependencies>
       <dependency>
@@ -36,6 +36,7 @@
             <artifactId>maven-shade-plugin</artifactId>
             <configuration>
                <shadedArtifactAttached>true</shadedArtifactAttached>
+               <outputFile>target/${project.artifactId}-${project.version}-shaded.jar</outputFile>
             </configuration>
          </plugin>
       </plugins>
