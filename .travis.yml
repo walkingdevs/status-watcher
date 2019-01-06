@@ -6,9 +6,6 @@ cache:
   directories:
   - $HOME/.m2
 
-script:
-- mvn package -B
-
 deploy:
   provider: script
   script: mvn deploy -s settings.xml -DskipTests -DBintrayKey=$BintrayKey -B
