@@ -1,0 +1,42 @@
+<project>
+   <modelVersion>4.0.0</modelVersion>
+
+   <parent>
+      <groupId>walkingdevs</groupId>
+      <artifactId>parent</artifactId>
+      <version>10</version>
+      <relativePath/>
+   </parent>
+
+   <artifactId>status-watcher</artifactId>
+   <version>0.1</version>
+
+   <dependencies>
+      <dependency>
+         <groupId>walkingdevs</groupId>
+         <artifactId>sdk</artifactId>
+         <version>8.13</version>
+      </dependency>
+      <dependency>
+         <groupId>com.fasterxml.jackson.core</groupId>
+         <artifactId>jackson-databind</artifactId>
+         <version>2.9.7</version>
+      </dependency>
+      <dependency>
+         <groupId>org.telegram</groupId>
+         <artifactId>telegrambots</artifactId>
+         <version>4.1</version>
+      </dependency>
+   </dependencies>
+
+   <build>
+      <sourceDirectory>src</sourceDirectory>
+   </build>
+
+   <repositories>
+      <repository>
+         <id>bintray</id>
+         <url>http://dl.bintray.com/walkingdevs/mvn</url>
+      </repository>
+   </repositories>
+</project>
