@@ -1,6 +1,5 @@
 # Server (s) status watcher
-It pings (every minute) servers in the server.list file. Ping is a HTTP GET request.
-Why not TCP connect? Because server can be behind a proxy.
+It pings (every minute) servers in the servers.json file. Ping is a HTTP GET request or a TCP open connect.
 Telegram bot is used for notification. Every 10080 minute bot messages a report with servers uptime.
 How uptime is calculated (not accurate, but ok):
 
@@ -21,11 +20,27 @@ Chat ID is: -1234456789 (with minus, it's important)
 
     mkdir -pv status-watcher-dir
 
-    cat >> server.list << EOF
-    [
-        "https://google.com",
-        "https://apple.com"
-    ]    
+    cat >> servers.json << EOF
+    {
+      "http": [
+        {
+          "url": "http://google.com"
+        },
+        {
+          "url": "https://vk.com"
+        }
+      ],
+      "tcp": [
+        {
+          "host": "localhost",
+          "port": 8080
+        },
+        {
+          "host": "localhost",
+          "port": 8081
+        }
+      ]
+    }
     EOF
 
     docker run --restart always -d \
