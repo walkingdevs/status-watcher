@@ -1,0 +1,20 @@
+{
+  "http": [
+    {
+      "url": "http://google.com"
+    },
+    {
+      "url": "https://vk.com"
+    }
+  ],
+  "tcp": [
+    {
+      "host": "localhost",
+      "port": 8080
+    },
+    {
+      "host": "localhost",
+      "port": 8081
+    }
+  ]
+}
