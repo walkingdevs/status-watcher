@@ -1,8 +1,13 @@
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.glassfish.grizzly.utils.Pair;
 import walkingdevs.http.ReqBuilder;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.Socket;
+import java.net.UnknownHostException;
 import java.nio.file.Files;
 import java.text.DecimalFormat;
 import java.util.*;
@@ -12,32 +17,45 @@ import java.util.concurrent.atomic.AtomicLong;
 public class Main {
    public static void main(String[] args) {
       TrustAllManager.trust();
-      if (new File("/status-watcher-dir").exists()) {
-         serverListFile = "/status-watcher-dir/server.list";
+
+//      if (new File("/status-watcher-dir").exists()) {
+//         serverListFile = "/status-watcher-dir/server.list";
+//      } else {
+//         serverListFile = "server.list";
+//      }
+
+
+      if (new File("server.list").exists()) {
+         serverListFile = "server.list";
       } else {
          serverListFile = "server.list";
       }
+
+
+
       new Timer().scheduleAtFixedRate(
-         new Task(), 0, 1000 * 60
+              new Task(), 0, 1000 * 60
       );
-      bot.fire("Status monitoring is started...");
+      bot.fire("Status monitoring is started!");
       Runtime.getRuntime().addShutdownHook(
-         new Thread(() -> {
-            bot.fire("I am dead.");
-         })
+              new Thread(() -> {
+                 bot.fire("I am dead.");
+              })
       );
    }
 
    private static class Task extends TimerTask {
       public void run() {
-         List<String> servers = readJson();
+         ServerList serverList = readJson();
+         List<Pair<String,Integer>> tcpServers = serverList.getTcpList();
+         List<String> httpServers = serverList.getHttpList();
          try {
             ReqBuilder.GET("https://google.com").connectTimeout(1000).readTimeout(1000).build().send();
          } catch (Exception e) {
             bot.fire("no internet");
             return;
          }
-         for (String server : servers) {
+         for (String server : httpServers) {
             if (!ping(server)) {
                tryCounts.put(server, getCount(server) + 1);
             }
@@ -45,20 +63,38 @@ public class Main {
                bot.fire(server + " is Down");
             }
          }
+         for (Pair<String,Integer> server : tcpServers) {
+            String s = server.getFirst()+":"+server.getSecond();
+            if (!ping(server)) {
+               tryCounts.put(s, getCount(s) + 1);
+            }
+            if (getCount(s) > 2) {
+               bot.fire(server.getFirst() +":" +server.getSecond() + " is Down");
+            }
+         }
          if (requestCount.incrementAndGet() % 10080 == 0) {
-            fireStats(servers);
+            fireStats(httpServers, tcpServers);
          }
       }
 
-      private void fireStats(List<String> servers) {
+      private void fireStats(List<String> httpServers, List<Pair<String,Integer>> tcpServers) {
          StringBuilder report = new StringBuilder("Stats\n");
-         for (String server : servers) {
+         for (String server : httpServers) {
             report
-               .append(server)
-               .append(" | ")
-               .append(new DecimalFormat("##.####").format(stats.get(server) * 100.0 / requestCount.get()))
-               .append("\n");
+                    .append(server)
+                    .append(" | ")
+                    .append(new DecimalFormat("##.####").format(stats.get(server) * 100.0 / requestCount.get()))
+                    .append("\n");
          }
+         for (Pair<String,Integer> server : tcpServers) {
+            String s = server.getFirst()+":"+server.getSecond();
+            report
+                    .append(s)
+                    .append(" | ")
+                    .append(new DecimalFormat("##.####").format(stats.get(s) * 100.0 / requestCount.get()))
+                    .append("\n");
+         }
+
          bot.fire(report.toString());
       }
 
@@ -70,12 +106,31 @@ public class Main {
       }
 
       private boolean ping(String server) {
+         if (!stats.containsKey(server)) {
+            stats.put(server, 0);
+         }
          try {
             ReqBuilder.GET(server).connectTimeout(3000).readTimeout(3000).build().send();
             updateStat(server);
             tryCounts.put(server, 0);
             return true;
          } catch (Exception e) {
+            return false;
+         }
+      }
+
+      private boolean ping(Pair<String,Integer> server){
+         String s = server.getFirst() + ":" +server.getSecond();
+         if (!stats.containsKey(s)) {
+            stats.put(s, 0);
+         }
+         try {
+            Socket socket = new Socket(server.getFirst(), server.getSecond());
+            updateStat(s);
+            tryCounts.put(s, 0);
+            return true;
+         }
+         catch (IOException e){
             return false;
          }
       }
@@ -88,17 +143,16 @@ public class Main {
       }
    }
 
-   private static List<String> readJson() {
+   private static ServerList readJson(){
       try {
          return new ObjectMapper().readValue(
-            new String(
-               Files.readAllBytes(new File(serverListFile).toPath())
-            ),
-            new TypeReference<List<String>>() {}
+                 new String(Files.readAllBytes(new File(serverListFile).toPath())
+                 ),
+                 new TypeReference<ServerList>(){}
          );
-      } catch (Exception e) {
-         bot.fire(e.getMessage());
-         return new ArrayList<>();
+      } catch (IOException e){
+         System.out.println(e.getMessage());
+         return new ServerList();
       }
    }
 
