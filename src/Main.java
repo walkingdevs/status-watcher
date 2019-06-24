@@ -18,18 +18,18 @@ public class Main {
    public static void main(String[] args) {
       TrustAllManager.trust();
 
-//      if (new File("/status-watcher-dir").exists()) {
-//         serverListFile = "/status-watcher-dir/server.list";
-//      } else {
-//         serverListFile = "server.list";
-//      }
-
-
-      if (new File("server.list").exists()) {
-         serverListFile = "server.list";
+      if (new File("/status-watcher-dir").exists()) {
+         serverListFile = "/status-watcher-dir/server.list";
       } else {
          serverListFile = "server.list";
       }
+
+
+//      if (new File("server.list").exists()) {
+//         serverListFile = "server.list";
+//      } else {
+//         serverListFile = "server.list";
+//      }
 
 
 
