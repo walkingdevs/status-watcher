@@ -18,16 +18,37 @@ import java.util.concurrent.atomic.AtomicLong;
 
 public class Main {
    public static void main(String[] args) {
+
       TrustAllManager.trust();
       if (new File("/status-watcher-dir").exists()) {
          serverListFile = "/status-watcher-dir/servers.json";
       } else {
          serverListFile = "servers.json";
       }
+      String rt = System.getenv("readTimeout");
+      String ct = System.getenv("connectTimeout");
+      String ss = System.getenv("statsSchedule");
+      readTimeout=3000;
+      connectTimeout=3000;
+      statsSchedule=10080;
+      try {
+         readTimeout=Integer.parseInt(rt);
+      }
+      catch (Exception e){}
+      try {
+         connectTimeout=Integer.parseInt(ct);
+      }
+      catch (Exception e){}
+      try {
+         statsSchedule=Integer.parseInt(ss);
+      }
+      catch (Exception e){}
+
       new Timer().scheduleAtFixedRate(
-         new Task(), 0, 1000 * 60
+         new Task(), 0, 1000 * 30
       );
-      bot.fire("Status monitoring is started!");
+      bot.fire("Status monitoring is started...");
+
       Runtime.getRuntime().addShutdownHook(
          new Thread(() -> {
             bot.fire("I am dead.");
@@ -40,8 +61,10 @@ public class Main {
          ServerList serverList = readJson();
          List<Pair<String, Integer>> tcpServers = serverList.getTcpList();
          List<String> httpServers = serverList.getHttpList();
+
+
          try {
-            ReqBuilder.GET("https://google.com").connectTimeout(1000).readTimeout(1000).build().send();
+            ReqBuilder.GET("https://google.com").connectTimeout(connectTimeout).readTimeout(readTimeout).build().send();
          } catch (Exception e) {
             bot.fire("no internet");
             return;
@@ -63,7 +86,7 @@ public class Main {
                bot.fire(server.getFirst() + ":" + server.getSecond() + " is Down");
             }
          }
-         if (requestCount.incrementAndGet() % 10080 == 0) {
+         if (requestCount.incrementAndGet() % statsSchedule == 0) {
             fireStats(httpServers, tcpServers);
          }
       }
@@ -101,7 +124,7 @@ public class Main {
             stats.put(server, 0);
          }
          try {
-            ReqBuilder.GET(server).connectTimeout(3000).readTimeout(3000).build().send();
+            ReqBuilder.GET(server).connectTimeout(connectTimeout).readTimeout(readTimeout).build().send();
             updateStat(server);
             tryCounts.put(server, 0);
             return true;
@@ -116,7 +139,7 @@ public class Main {
             stats.put(s, 0);
          }
          try {
-            new Socket(server.getFirst(), server.getSecond());
+            new Socket(server.getFirst(), server.getSecond()).setSoTimeout(connectTimeout);
             updateStat(s);
             tryCounts.put(s, 0);
             return true;
@@ -145,6 +168,9 @@ public class Main {
    }
 
    private static String serverListFile;
+   private static int readTimeout;
+   private static int connectTimeout;
+   private static int statsSchedule;
    private static final Bot bot = new Bot();
    private static final Map<String, Integer> tryCounts = new ConcurrentHashMap<>();
    private static final Map<String, Integer> stats = new ConcurrentHashMap<>();
