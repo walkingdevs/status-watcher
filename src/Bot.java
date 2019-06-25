@@ -14,9 +14,7 @@ class Bot extends TelegramLongPollingBot {
 
    void fire(String text) {
       SendMessage message = new SendMessage();
-      message.setChatId(
-         System.getenv("chatId")
-      );
+      message.setChatId(System.getenv("chatId"));
       message.setText(text);
       try {
          execute(message);
